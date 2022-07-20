@@ -13,7 +13,7 @@ from ray.train.batch_predictor import BatchPredictor
 from torchvision import transforms
 from torchvision.models.detection.ssd import ssd300_vgg16
 
-ray.init(
+ray.init("anyscale://movie-recs",
     _system_config={
         "object_spilling_config": json.dumps(
             {"type": "filesystem", "params": {"directory_path": "/home/ec2-user/SageMaker/object-spill"}},
