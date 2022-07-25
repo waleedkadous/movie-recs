@@ -5,6 +5,8 @@ The following workload has been run on a ml.g4dn.12xlarge Sagemaker instance.
 
 # Requirements
 ```
+pip install ray[all]
+ray install-nightly
 pip install torch
 pip install torchvision
 ```
