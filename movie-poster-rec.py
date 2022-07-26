@@ -17,7 +17,7 @@ from ray.train.batch_predictor import BatchPredictor
 
 import torch
 from torchvision import transforms
-from torchvision.models.detection.ssd import ssd300_vgg16
+from torchvision.models.detection.ssd import ssd300_vgg16, SSD300_VGG16_Weights
 
 from util import draw_bounding_boxes, save_images
 
@@ -34,19 +34,21 @@ def read_data_from_s3() -> ray.data.Dataset:
 
         return pd.DataFrame({"image": TensorArray(images)})
 
+
     # What is parallelism magic number?
     # TODO: Support reading images of different sizes in ImageFolderDatasource
     dataset = ray.data.read_binary_files(paths=files_dir)
+    
 
     # TODO: Debug object spilling behavior.
-    #dataset = dataset.limit(int(0.25*dataset.count()))
+    dataset = dataset.limit(dataset.count() // 50)
     dataset = dataset.map_batches(convert_to_pandas)
     
     return dataset
 
 
 def batch_predict(dataset: ray.data.Dataset) -> ray.data.Dataset:
-    model = ssd300_vgg16(pretrained=True)
+    model = ssd300_vgg16(weights=SSD300_VGG16_Weights.DEFAULT)
 
 
     # # TODO: TorchCheckpoint should accept a model or a model state dict
@@ -83,7 +85,7 @@ def visualize_objects(prediction_outputs: ray.data.Dataset):
         
         
 if __name__ == "__main__":
-    #ray.init("anyscale://workspace-project-sagemaker-demo/workspace-cluster-sagemaker-demo", runtime_env={"working_dir": "."})
+    ray.init("anyscale://workspace-project-demo/workspace-cluster-demo", runtime_env={"working_dir": "."})
     dataset = read_data_from_s3()
     prediction_results = batch_predict(dataset)
     visualize_objects(prediction_results)

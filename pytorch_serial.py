@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, Subset
 
 import torchvision
 from torchvision import transforms
-from torchvision.models.detection.ssd import ssd300_vgg16
+from torchvision.models.detection.ssd import ssd300_vgg16, SSD300_VGG16_Weights
 
 import torch.multiprocessing as mp
 
@@ -13,15 +13,15 @@ import pandas as pd
 
 from tqdm import tqdm
 
-def run_inference(rank, world_size, data, results):    
-    partition_size = len(data) // world_size
-    data = Subset(data, indices=list(range(rank*partition_size, (rank+1)*partition_size)))
+def run_inference(data, results):    
+    subset_size = len(data) // 50
+    data = Subset(data, indices=list(range(subset_size)))
     
-    data_loader = DataLoader(data, batch_size=128, num_workers=1)
+    data_loader = DataLoader(data, batch_size=96)
     
-    device = torch.device(f"cuda:{rank}")
+    device = torch.device(f"cuda:0")
     
-    model = ssd300_vgg16(pretrained=True)
+    model = ssd300_vgg16(weights=SSD300_VGG16_Weights.DEFAULT)
     model = model.to(device)
     model.eval()
     
@@ -45,10 +45,7 @@ if __name__ == "__main__":
             transforms.ToTensor()])
     data = torchvision.datasets.ImageFolder("/home/ec2-user/SageMaker/movie_posters", transform=torchvision_transforms)
     
-    mp.spawn(run_inference,
-        args=(world_size,data,results),
-        nprocs=world_size,
-        join=True)
+    run_inference(data, results)
     
     results = results[:5]
     
