@@ -27,10 +27,7 @@ Then run `python pytorch_serial.py`
 This will
 1. Read the Dataset from S3
 2. Perform batch prediction with Ray AIR
-3. Take the first handful of prediction results to visualize in the `./object_detections` folder.
-
-# Running Ray on Anyscale via Anyscale Connect
-TODO
+3. Take the first 100 prediction results to visualize in the `./object_detections` folder.
 
 # Running Ray on Anyscale via Workspaces
 1. Set up Anyscale git access so you can clone the repo. 
@@ -58,4 +55,13 @@ export ANYSCALE_CLI_TOKEN=<INSERT_YOUR_CLI_TOKEN>
 cd workspace-project-sagemaker-demo
 anyscale workspace run "python movie-poster-rec.py"
 ```
-9. If you access your workspace from Anyscale, you should see the object detections saved on the head node.
+9. If you access your workspace from Anyscale, you should see the first 100 object detections saved on the head node.
+
+# Running Ray on Anyscale via Anyscale Connect
+Follow instructions 1-5 from the previous section.
+
+Now do the following
+1. Add the appropriate Ray address to your script. 
+For example, add the following line to `movie_poster_rec.py`: `ray.init("anyscale://workspace-project-sagemaker-demo/workspace-cluster-sagemaker-demo", runtime_env={"working_dir": "."})`
+2. Run `python movie_poster_rec.py`
+3. You should see the 100 object detections saved on the locally on the Sagemaker notebook.

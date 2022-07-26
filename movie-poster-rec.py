@@ -83,7 +83,7 @@ def visualize_objects(prediction_outputs: ray.data.Dataset):
         
         
 if __name__ == "__main__":
-    #ray.init("anyscale://workspace-project-sagemaker-demo/workspace-cluster-sagemaker-demo")
+    #ray.init("anyscale://workspace-project-sagemaker-demo/workspace-cluster-sagemaker-demo", runtime_env={"working_dir": "."})
     dataset = read_data_from_s3()
     prediction_results = batch_predict(dataset)
     visualize_objects(prediction_results)
