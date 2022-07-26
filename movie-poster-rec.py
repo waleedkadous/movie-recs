@@ -39,7 +39,7 @@ def read_data_from_s3() -> ray.data.Dataset:
     dataset = ray.data.read_binary_files(paths=files_dir)
 
     # TODO: Debug object spilling behavior.
-    dataset = dataset.limit(int(0.25*dataset.count()))
+    #dataset = dataset.limit(int(0.25*dataset.count()))
     dataset = dataset.map_batches(convert_to_pandas)
     
     return dataset
@@ -65,7 +65,7 @@ def batch_predict(dataset: ray.data.Dataset) -> ray.data.Dataset:
 
 
     predictor = BatchPredictor.from_checkpoint(ckpt, MyPredictor)
-    results = predictor.predict(dataset, num_gpus_per_worker=1, batch_size=128, keep_columns=["image"])
+    results = predictor.predict(dataset, num_gpus_per_worker=1, batch_size=96, keep_columns=["image"])
     return results
     
     
@@ -78,11 +78,13 @@ def visualize_objects(prediction_outputs: ray.data.Dataset):
     # Let's visualize the first 100 movie posters.
     images_to_draw = prediction_outputs.limit(100).map(draw_bounding_boxes)
 
-    save_images(images_to_draw.iter_rows())
+    save_images(images_to_draw.iter_rows(), save_dir=save_dir)
     
         
         
 if __name__ == "__main__":
+    #ray.init("anyscale://workspace-project-sagemaker-demo/workspace-cluster-sagemaker-demo")
     dataset = read_data_from_s3()
     prediction_results = batch_predict(dataset)
     visualize_objects(prediction_results)
+
