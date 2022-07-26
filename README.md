@@ -13,7 +13,13 @@ pip install tqdm # to visualize progress bar
 ```
 
 # PyTorch Serial
-TODO
+First download the images from s3
+```
+mkdir images
+aws s3 cp --recursive s3://waleed-movies ./images/
+```
+
+Then run `python pytorch_serial.py`
 
 # Running Ray locally on Sagemaker
 `python movie_poster_rec.py`
