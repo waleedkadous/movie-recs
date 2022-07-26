@@ -9,6 +9,7 @@ pip install ray[all]
 ray install-nightly
 pip install torch
 pip install torchvision
+pip install tqdm # to visualize progress bar
 ```
 
 # PyTorch Serial
