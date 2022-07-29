@@ -15,6 +15,7 @@ pip install tqdm # to visualize progress bar
 # PyTorch Serial
 First download the images from s3
 ```
+cd /home/ec2-user/SageMaker/movie-recs/movie_posters
 mkdir images
 aws s3 cp --recursive s3://waleed-movies ./images/
 ```
