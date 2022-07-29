@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as df
 
+from ray.air.util.tensor_extensions.pandas import TensorArrayElement
+
 import os
 
 from PIL import Image, ImageColor, ImageDraw, ImageFont
@@ -24,11 +26,11 @@ def draw_bounding_boxes(df: dict) -> None:
     score_threshold = 0.8
 
     # TODO: Fix this once TensorArray auto-casting is resolved.
-    image = df["image"] if type(df["image"]) == np.ndarray else df["image"].to_numpy()
+    image = df["image"].to_numpy() if type(df["image"]) == TensorArrayElement else df["image"]
     image = (image*255).astype("uint8")
-    boxes = df["boxes"] if type(df["boxes"]) == np.ndarray else df["boxes"].to_numpy()
-    labels = df["labels"] if type(df["labels"]) == np.ndarray else df["labels"].to_numpy()
-    scores = df["scores"] if type(df["scores"]) == np.ndarray else df["scores"].to_numpy()
+    boxes = df["boxes"].to_numpy() if type(df["boxes"]) == TensorArrayElement else df["boxes"]
+    labels = df["labels"].to_numpy() if type(df["labels"]) == TensorArrayElement else df["labels"]
+    scores = df["scores"].to_numpy() if type(df["scores"]) == TensorArrayElement else df["scores"]
 
 
     # Only keep high scoring boxes.
