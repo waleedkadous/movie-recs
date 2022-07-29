@@ -9,10 +9,8 @@ from PIL import Image
 import json
 
 import ray
-from ray.air import Checkpoint
 from ray.data.context import DatasetContext
-from ray.train.predictor import Predictor
-from ray.train.torch import TorchPredictor
+from ray.train.torch import TorchPredictor, TorchCheckpoint
 from ray.train.batch_predictor import BatchPredictor
 
 
@@ -54,7 +52,7 @@ def batch_predict() -> ray.data.Dataset:
     dataset = read_data_from_s3()
     model = ssd300_vgg16(pretrained=True)
 
-    ckpt = Checkpoint.from_dict({"model": model})
+    ckpt = TorchCheckpoint.from_model(model)
     
     # For a use case like this (model returns a non-standard output type like List[Dict[str, torch.Tensor]]) we would recommend users to implement their own Predictors. For demo purposes we can hide this Predictor implementation, but I don't think there is a good way we can generically support all output types in TorchPredictor directly.
     # See here for more information about the model inputs and outputs: https://pytorch.org/vision/stable/models/generated/torchvision.models.detection.ssd300_vgg16.html
