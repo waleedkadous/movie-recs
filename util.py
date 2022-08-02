@@ -54,7 +54,7 @@ class VGG16Predictor(TorchPredictor):
 
 def draw_bounding_boxes(df: dict) -> None:
     # Draw image first.
-    image = (df["image"].to_numpy() * 255).astype("uint8")
+    image = (df["image"] * 255).astype("uint8")
     ndarr = np.transpose(image, (1, 2, 0))
     img_to_draw = Image.fromarray(ndarr)
 
