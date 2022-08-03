@@ -5,8 +5,10 @@ The following workload has been run on a ml.g4dn.12xlarge Sagemaker instance.
 
 # Requirements
 ```
-pip install ray[all]
-ray install-nightly
+# Local commit with changes needed, will be merged soon
+# In case you're not using py3.7, get wheel links in https://buildkite.com/ray-project/ray-builders-pr/builds/41075#01825f93-238f-4376-8df2-0f60d5df468b
+pip install https://ray-ci-artifact-pr-public.s3.amazonaws.com/c58874ae8545eef0b5c7632418eba3da0b5015c9/tmp/artifacts/.whl/ray-3.0.0.dev0-cp37-cp37m-manylinux2014_x86_64.whl
+pip install ray[tune]
 pip install torch
 pip install torchvision
 pip install tqdm # to visualize progress bar
@@ -31,9 +33,9 @@ This will
 3. Take the first 100 prediction results to visualize in the `./object_detections` folder.
 
 # Running Ray on Anyscale via Workspaces
-1. Set up Anyscale git access so you can clone the repo. 
-	- You can either create a [Personal Access token on Github](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). 
-	- Or you can generate an ssh key on the Sagemaker instance and add it to your Github account 
+1. Set up Anyscale git access so you can clone the repo.
+	- You can either create a [Personal Access token on Github](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
+	- Or you can generate an ssh key on the Sagemaker instance and add it to your Github account
 2. Configure the Personal Access Token/SSH key with Anyscale SSO
 3. Clone the product repo `git clone git@github.com:anyscale/product.git`
 4. Install Anyscale CLI
@@ -62,7 +64,7 @@ anyscale workspace run "python movie-poster-rec.py"
 Follow instructions 1-5 from the previous section.
 
 Now do the following
-1. Add the appropriate Ray address to your script. 
+1. Add the appropriate Ray address to your script.
 For example, add the following line to `movie_poster_rec.py`: `ray.init("anyscale://workspace-project-sagemaker-demo/workspace-cluster-sagemaker-demo", runtime_env={"working_dir": "."})`
 2. Run `python movie_poster_rec.py`
 3. You should see the 100 object detections saved on the locally on the Sagemaker notebook.

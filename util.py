@@ -3,6 +3,7 @@ import os
 import torch
 from PIL import Image, ImageColor, ImageDraw, ImageFont
 
+import ray
 from ray.train.torch import TorchPredictor
 
 
@@ -57,11 +58,10 @@ def draw_bounding_boxes(df: dict) -> None:
     image = (df["image"] * 255).astype("uint8")
     ndarr = np.transpose(image, (1, 2, 0))
     img_to_draw = Image.fromarray(ndarr)
-
     # Bounding box data.
-    boxes = df["boxes"].to_numpy()
-    labels = df["labels"].to_numpy().astype("uint8")
-    scores = df["scores"].to_numpy()
+    boxes = df["boxes"]
+    labels = df["labels"].astype("uint8")
+    scores = df["scores"]
 
     # Only keep high scoring boxes.
     boxes = boxes[scores > SCORE_THRESHOLD]
@@ -93,3 +93,9 @@ def save_images(images_iter, save_dir: str):
         os.mkdir(save_dir)
     for i, record in enumerate(images_iter):
         record.save(os.path.join(save_dir, f"img_{str(i).zfill(5)}.png"))
+
+def visualize_objects(prediction_outputs: ray.data.Dataset):
+    save_dir = "./object_detections"
+    # Let's visualize the first 100 movie posters.
+    images_to_draw = prediction_outputs.limit(100).map(draw_bounding_boxes)
+    save_images(images_to_draw.iter_rows(), save_dir=save_dir)
