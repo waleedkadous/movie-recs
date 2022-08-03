@@ -5,10 +5,7 @@ FILES_DIR = "s3://waleed-movies"
 
 # Use this for quick testing with ~300 files
 # FILES_DIR = "s3://air-example-data-2/movie-image-small-filesize-1-file"
-
-from typing import Union, Dict
 import numpy as np
-import pandas as pd
 import json
 
 import torch
@@ -21,40 +18,20 @@ from ray.train.batch_predictor import BatchPredictor
 from ray.data.preprocessors import BatchMapper
 from ray.data.datasource import ImageFolderDatasource
 
-from util import visualize_objects
+from util import visualize_objects, convert_to_tensor
 
 # TODO: Enable auto casting once we resolve call_model() output format
 from ray.data.context import DatasetContext
 ctx = DatasetContext.get_current();
 ctx.enable_tensor_extension_casting = False
 
-def preprocess(df: pd.DataFrame) -> pd.DataFrame:
-    """User Pytorch code to transform user image."""
-    preprocess = transforms.Compose(
-        [transforms.ToTensor()]
-    )
-    df.loc[:, "image"] = [
-        preprocess(np.asarray(image)).numpy() for image in df["image"]
-    ]
-    return df
-
-class SSDPredictor(TorchPredictor):
-    def call_model(
-        self, tensor: Union[torch.Tensor, Dict[str, torch.Tensor]]
-    ) -> Union[torch.Tensor, Dict[str, torch.Tensor], pd.DataFrame]:
-        """User predictor output formatting code."""
-        model_output = super().call_model(tensor)
-        return pd.DataFrame([
-            {k: v.detach().cpu().numpy() for k, v in objects.items()}
-            for objects in model_output
-        ])
 
 def batch_predict(files_dir) -> ray.data.Dataset:
     dataset = ray.data.read_datasource(
         ImageFolderDatasource(), root=files_dir, size=(300, 300), mode="RGB"
-    )
+    ).limit(1000)
 
-    preprocessor = BatchMapper(preprocess)
+    preprocessor = BatchMapper(convert_to_tensor)
     model = ssd300_vgg16(pretrained=True)
     ckpt = TorchCheckpoint.from_model(model=model, preprocessor=preprocessor)
     predictor = BatchPredictor.from_checkpoint(ckpt, SSDPredictor)

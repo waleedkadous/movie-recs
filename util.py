@@ -1,7 +1,13 @@
 import numpy as np
 import os
-import torch
 from PIL import Image, ImageColor, ImageDraw, ImageFont
+from typing import Union, Dict
+import pandas as pd
+import torch
+from torchvision import transforms
+from torchvision.models.detection.ssd import ssd300_vgg16
+
+
 
 import ray
 from ray.train.torch import TorchPredictor
@@ -52,7 +58,28 @@ class VGG16Predictor(TorchPredictor):
 
         return objects
 
+class SSDPredictor(TorchPredictor):
+    def call_model(
+        self, tensor: Union[torch.Tensor, Dict[str, torch.Tensor]]
+    ) -> Union[torch.Tensor, Dict[str, torch.Tensor], pd.DataFrame]:
+        """User predictor output formatting code."""
+        model_output = super().call_model(tensor)
+        return pd.DataFrame([
+            {k: v.detach().cpu().numpy() for k, v in objects.items()}
+            for objects in model_output
+        ])
+    
 
+def convert_to_tensor(df: pd.DataFrame) -> pd.DataFrame:
+    """User Pytorch code to transform user image."""
+    preprocess = transforms.Compose(
+        [transforms.ToTensor()]
+    )
+    df.loc[:, "image"] = [
+        preprocess(np.asarray(image)).numpy() for image in df["image"]
+    ]
+    return df
+    
 def draw_bounding_boxes(df: dict) -> None:
     # Draw image first.
     image = (df["image"] * 255).astype("uint8")
