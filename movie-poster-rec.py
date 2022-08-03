@@ -9,6 +9,7 @@ FILES_DIR = "s3://waleed-movies"
 from typing import Union, Dict
 import numpy as np
 import pandas as pd
+import json
 
 import torch
 from torchvision import transforms
@@ -49,24 +50,32 @@ class SSDPredictor(TorchPredictor):
         ])
 
 def batch_predict(files_dir) -> ray.data.Dataset:
-    # TODO: Debug object spilling behavior. This only happens on SageMaker but not Workspace.
     dataset = ray.data.read_datasource(
         ImageFolderDatasource(), root=files_dir, size=(300, 300), mode="RGB"
-    ).limit(10000)
+    )
 
     preprocessor = BatchMapper(preprocess)
     model = ssd300_vgg16(pretrained=True)
     ckpt = TorchCheckpoint.from_model(model=model, preprocessor=preprocessor)
     predictor = BatchPredictor.from_checkpoint(ckpt, SSDPredictor)
     return predictor.predict(
-        dataset, batch_size=128, min_scoring_workers=4,
+        dataset, batch_size=128,
+        min_scoring_workers=4, max_scoring_workers=4,
         num_cpus_per_worker=4, num_gpus_per_worker=1,
         feature_columns=["image"], keep_columns=["image"]
     )
 
 if __name__ == "__main__":
+    # Keep these if you're using SageMaker to ensure we have enough
+    # object store size and spilling to the right directory
+    ray.init(
+        object_store_memory=100*10**9,
+        _system_config={
+        "object_spilling_config": json.dumps(
+            {"type": "filesystem", "params": {"directory_path": "/home/ec2-user/SageMaker/spilling"}},
+            )
+        }
+    )
     print(f"Predicting from images in {FILES_DIR}")
     prediction_results = batch_predict(FILES_DIR)
-
-    # it will fail before final map stage but enough to observe and debug GPU utils
     visualize_objects(prediction_results)
