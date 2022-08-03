@@ -1,0 +1,4 @@
+entrypoint: python movie-poster-rec.py
+cluster_env: sagemaker-cluster-env:1
+runtime_env:
+  working_dir: https://github.com/waleedkadous/movie-recs/archive/refs/heads/waleeds-version.zip
