@@ -1,0 +1,5 @@
+entrypoint: label-posters-remote.py
+compute_config: movie-rec-20-gpus
+cluster_env: sagemaker-cluster-env:3
+runtime_env:
+  working_dir: https://github.com/waleedkadous/movie-recs/archive/refs/heads/main.zip
